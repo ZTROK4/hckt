@@ -10,7 +10,6 @@ require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 const client = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-// ✅ Middleware: JWT Auth
 const authenticateJWT = (req, res, next) => {
   const authHeader = req.headers['authorization'];
 
@@ -34,7 +33,6 @@ const authenticateJWT = (req, res, next) => {
   });
 };
 
-// ✅ POST /emergency — record event and alert contact
 router.post('/', authenticateJWT, async (req, res) => {
   const { type, status, message } = req.body;
   const { id: user_id, email } = req.user;
@@ -44,7 +42,6 @@ router.post('/', authenticateJWT, async (req, res) => {
   }
 
   try {
-    // 🔍 1. Fetch emergency contact info from logincredentials table
     const contactRes = await pool.query(
       'SELECT contact_email, contact_phone FROM logincredentials WHERE user_id = $1',
       [user_id]
@@ -56,17 +53,15 @@ router.post('/', authenticateJWT, async (req, res) => {
 
     const { contact_email, contact_phone } = contactRes.rows[0];
 
-    // ✅ 2. Save emergency event
     await pool.query(
       `INSERT INTO emergency_events (user_id, event_type, status, message)
        VALUES ($1, $2, $3, $4)`,
       [user_id, type || null, status || null, message]
     );
 
-    // 🔐 3. Generate OTP
+  
     const otp = crypto.randomInt(100000, 999999);
 
-    // 📧 4. Send email using Gmail
     const transporter = nodemailer.createTransport({
       service: "Gmail",
       auth: {
@@ -82,10 +77,9 @@ router.post('/', authenticateJWT, async (req, res) => {
       text: `This is an emergency alert from ${email}.\n\nType: ${type}\nStatus: ${status}\nMessage: ${message}\n`,
     });
 
-    // 📱 5. Send SMS via Twilio
     await client.messages.create({
       body: `🚨 Emergency Alert from ${email}\nType: ${type}\nMessage: ${message}\n`,
-      from: process.env.TWILIO_PHONE_NUMBER, // your Twilio number
+      from: process.env.TWILIO_PHONE_NUMBER, 
       to: contact_phone,
     });
 

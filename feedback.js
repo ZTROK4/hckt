@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('./db'); // PostgreSQL connection
+const pool = require('./db');
 
 router.post('/', async (req, res) => {
   const { rating, message } = req.body;

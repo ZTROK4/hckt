@@ -14,10 +14,8 @@ const feedbackRoute = require('./feedback');
 const signupRoute = require('./signup');
 const emergencyRoutes = require('./emergency');
 
-// JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
-// Google OAuth Strategy
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 passport.use('google-user', new GoogleStrategy({
@@ -66,27 +64,24 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// 🔐 SESSION SUPPORT (required for Passport login)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'some_secret_value',
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 1 day
+    maxAge: 24 * 60 * 60 * 1000 
   }
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-// 🔗 Routes
 app.use('/auth', authRoutes);
 app.use('/signup', signupRoute);
 app.use('/feedback', feedbackRoute);
 app.use('/emergency', emergencyRoutes);
 
-// ✅ Sample Protected Route using JWT
 app.get('/protected', (req, res) => {
   const token = req.headers['authorization']?.split(' ')[1];
   if (!token) return res.status(403).json({ message: 'Token is required' });
@@ -99,7 +94,6 @@ app.get('/protected', (req, res) => {
 
 
 
-// 🟢 Server Listen
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(` Server running on http://localhost:${PORT}`);
 });
