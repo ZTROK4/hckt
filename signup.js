@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
     contact_email,
     contact_phone,
     contact_relation,
-    user_name
+    name
   } = req.body;
 
   if (!email || !email.includes('@')) {
@@ -58,7 +58,7 @@ router.post('/', async (req, res) => {
         `INSERT INTO logincredentials 
          (email, type, contact_name, contact_email, contact_relation, contact_phone, name)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [email, type, contact_name, contact_email, contact_relation, contact_phone, user_name]
+        [email, type, contact_name, contact_email, contact_relation, contact_phone, name]
       );
       return res.status(201).json({ message: 'User created successfully', email });
     } else {
@@ -72,7 +72,7 @@ router.post('/', async (req, res) => {
              contact_phone = $5,
              name = $6
          WHERE email = $7`,
-        [type, contact_name, contact_email, contact_relation, contact_phone, user_name, email]
+        [type, contact_name, contact_email, contact_relation, contact_phone, name, email]
       );
       return res.status(200).json({ message: 'User updated successfully', email });
     }
