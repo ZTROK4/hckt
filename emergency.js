@@ -34,33 +34,35 @@ const authenticateJWT = (req, res, next) => {
 };
 
 router.post('/', authenticateJWT, async (req, res) => {
-  const { type, status, message } = req.body;
-  const { id: user_id, email } = req.user;
+  const { type, status, message, email } = req.body;
 
-  if (!message || message.trim() === '') {
-    return res.status(400).json({ message: 'Emergency message is required' });
+  if (!email || !message || message.trim() === '') {
+    return res.status(400).json({ message: 'Email and message are required' });
   }
 
   try {
+    // Step 1: Find user_id and contact info by email
     const contactRes = await pool.query(
-      'SELECT contact_email, contact_phone, name FROM logincredentials WHERE user_id = $1',
-      [user_id]
+      `SELECT user_id, contact_email, contact_phone, name 
+       FROM logincredentials 
+       WHERE email = $1`,
+      [email]
     );
 
     if (contactRes.rows.length === 0) {
-      return res.status(404).json({ message: 'Emergency contact not found' });
+      return res.status(404).json({ message: 'User or contact info not found' });
     }
 
-    const { contact_email, contact_phone, name } = contactRes.rows[0];
+    const { user_id, contact_email, contact_phone, name } = contactRes.rows[0];
 
+    // Step 2: Save emergency event
     await pool.query(
       `INSERT INTO emergency_events (user_id, event_type, status, message)
        VALUES ($1, $2, $3, $4)`,
       [user_id, type || null, status || null, message]
     );
 
-    const otp = crypto.randomInt(100000, 999999); // Optional, if used elsewhere
-
+    // Step 3: Send Email
     const transporter = nodemailer.createTransport({
       service: "Gmail",
       auth: {
@@ -76,6 +78,7 @@ router.post('/', authenticateJWT, async (req, res) => {
       text: `This is an emergency alert from ${name} (${email}).\n\nType: ${type}\nStatus: ${status}\nMessage: ${message}\n`,
     });
 
+    // Step 4: Send SMS
     await client.messages.create({
       body: `🚨 Emergency Alert from ${name} (${email})\nType: ${type}\nMessage: ${message}`,
       from: process.env.TWILIO_PHONE_NUMBER,
