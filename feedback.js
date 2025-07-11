@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('./db');
 
 router.post('/', async (req, res) => {
-  const { rating, message } = req.body;
+  const { message } = req.body;
 
   if (!email || !email.includes('@') || !message || message.trim() === '') {
     return res.status(400).json({ message: 'Email and message are required' });
@@ -11,8 +11,8 @@ router.post('/', async (req, res) => {
 
   try {
     await pool.query(
-      'INSERT INTO userfeedback (rating, feedback_text) VALUES ($1, $2)',
-      [rating, message]
+      'INSERT INTO userfeedback ( feedback_text) VALUES ($1, $2)',
+      [ message]
     );
 
     return res.status(201).json({ message: 'Feedback submitted successfully' });
