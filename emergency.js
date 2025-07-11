@@ -57,7 +57,7 @@ router.post('/', authenticateJWT, async (req, res) => {
 
     // Step 2: Save emergency event
     await pool.query(
-      `INSERT INTO emergency_events (user_id, event_type, status, message)
+      `INSERT INTO emergencyevents (user_id, event_type, status, message)
        VALUES ($1, $2, $3, $4)`,
       [user_id, type || null, status || null, message]
     );
