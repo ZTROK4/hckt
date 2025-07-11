@@ -25,7 +25,7 @@ await pool.query(
        contact_phone = $5,
        name = $6
    WHERE email = $7`,
-  [type, contact_name, contact_email, contact_relation, contact_phone, name, email]
+  [type, contact_name, contact_email, contact_relation, contact_phone,user_name, email]
 );
 
 
@@ -37,7 +37,7 @@ await pool.query(
 });
 
 router.post('/update', async (req, res) => {
-  const { email,type,contact_name,contact_email,contact_phone,contact_relation } = req.body;
+  const { email,type,contact_name,contact_email,contact_phone,contact_relation,user_name } = req.body;
 
   if (!email || !email.includes('@')) {
     return res.status(400).json({ message: 'Valid email is required' });
@@ -57,7 +57,7 @@ router.post('/update', async (req, res) => {
        contact_phone = $5,
        name = $6
    WHERE email = $7`,
-  [type, contact_name, contact_email, contact_relation, contact_phone, name, email]
+  [type, contact_name, contact_email, contact_relation, contact_phone, user_name, email]
 );
 
   }
