@@ -43,7 +43,7 @@ router.post('/', authenticateJWT, async (req, res) => {
 
   try {
     const contactRes = await pool.query(
-      'SELECT contact_email, contact_phone FROM logincredentials WHERE user_id = $1',
+      'SELECT contact_email, contact_phone, name FROM logincredentials WHERE user_id = $1',
       [user_id]
     );
 
@@ -51,7 +51,7 @@ router.post('/', authenticateJWT, async (req, res) => {
       return res.status(404).json({ message: 'Emergency contact not found' });
     }
 
-    const { contact_email, contact_phone } = contactRes.rows[0];
+    const { contact_email, contact_phone, name } = contactRes.rows[0];
 
     await pool.query(
       `INSERT INTO emergency_events (user_id, event_type, status, message)
@@ -59,8 +59,7 @@ router.post('/', authenticateJWT, async (req, res) => {
       [user_id, type || null, status || null, message]
     );
 
-  
-    const otp = crypto.randomInt(100000, 999999);
+    const otp = crypto.randomInt(100000, 999999); // Optional, if used elsewhere
 
     const transporter = nodemailer.createTransport({
       service: "Gmail",
@@ -74,12 +73,12 @@ router.post('/', authenticateJWT, async (req, res) => {
       from: `"Emergency Alert" <${process.env.EMAIL_USER}>`,
       to: contact_email,
       subject: "🚨 Emergency Alert",
-      text: `This is an emergency alert from ${email}.\n\nType: ${type}\nStatus: ${status}\nMessage: ${message}\n`,
+      text: `This is an emergency alert from ${name} (${email}).\n\nType: ${type}\nStatus: ${status}\nMessage: ${message}\n`,
     });
 
     await client.messages.create({
-      body: `🚨 Emergency Alert from ${email}\nType: ${type}\nMessage: ${message}\n`,
-      from: process.env.TWILIO_PHONE_NUMBER, 
+      body: `🚨 Emergency Alert from ${name} (${email})\nType: ${type}\nMessage: ${message}`,
+      from: process.env.TWILIO_PHONE_NUMBER,
       to: contact_phone,
     });
 
@@ -90,5 +89,6 @@ router.post('/', authenticateJWT, async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 module.exports = router;
