@@ -5,13 +5,9 @@ const pool = require('./db');
 router.post('/', async (req, res) => {
   const { message } = req.body;
 
-  if (!email || !email.includes('@') || !message || message.trim() === '') {
-    return res.status(400).json({ message: 'Email and message are required' });
-  }
-
   try {
     await pool.query(
-      'INSERT INTO userfeedback ( feedback_text) VALUES ($1, $2)',
+      'INSERT INTO userfeedback ( feedback_text) VALUES ($1)',
       [ message]
     );
 
